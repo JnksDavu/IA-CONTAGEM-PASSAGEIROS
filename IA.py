@@ -1,45 +1,34 @@
 import cv2
-import face_recognition
-import numpy as np
 
-# Inicialize a lista para armazenar as características faciais únicas
-known_face_encodings = []
-unique_faces_count = 0
+# Carregar o classificador de rosto pré-treinado
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# Captura de vídeo (0 para webcam ou o caminho do arquivo de vídeo)
-video_capture = cv2.VideoCapture("video.mp4")  # ou 0 para webcam
+# Abrir o vídeo
+video_path = 'Video.mp4'  # Substitua pelo caminho do seu vídeo
+cap = cv2.VideoCapture(video_path)
 
-while video_capture.isOpened():
-    # Ler um quadro do vídeo
-    ret, frame = video_capture.read()
+while True:
+    ret, frame = cap.read()
     if not ret:
-        break
+        break  # Sai do loop se não houver mais quadros
 
-    # Redimensionar o quadro para processamento mais rápido
-    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+    # Converter o quadro para escala de cinza
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Localizar e codificar rostos no quadro atual
-    face_locations = face_recognition.face_locations(small_frame)
-    face_encodings = face_recognition.face_encodings(small_frame, face_locations)
+    # Detectar rostos
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=10)
 
-    for face_encoding in face_encodings:
-        # Verifique se o rosto atual é semelhante a um rosto conhecido
-        matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.6)
-        if not any(matches):
-            # Novo rosto encontrado; adicione às codificações conhecidas
-            known_face_encodings.append(face_encoding)
-            unique_faces_count += 1
+    # Desenhar retângulos ao redor dos rostos detectados
+    for (x, y, w, h) in faces:
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-    # Exibir o número de pessoas únicas identificadas no vídeo
-    cv2.putText(frame, f"Pessoas únicas: {unique_faces_count}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+    # Mostrar o quadro processado
+    cv2.imshow('Face Detection', frame)
 
-    # Exibir o quadro de vídeo
-    cv2.imshow('Video', frame)
-
-    # Parar com a tecla 'q'
+    # Sair do loop ao pressionar 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Limpar
-video_capture.release()
+# Liberar o objeto de captura e fechar as janelas
+cap.release()
 cv2.destroyAllWindows()

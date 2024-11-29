@@ -14,12 +14,11 @@ def main():
             print("Erro ao capturar frame. Encerrando...")
             break
 
-        # Classifica e exibe o frame com as contagens atualizadas
         classification = detector.classify_scene(frame)
         cv2.imshow('Contagem de Passageiros', classification)
 
         key = cv2.waitKey(1) & 0xFF
-        if key == ord('esc'):
+        if key == ord('q'):
             print("Encerrando o programa...")
             break
 
